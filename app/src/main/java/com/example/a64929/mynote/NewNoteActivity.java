@@ -17,6 +17,9 @@ import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+/**
+ * 新建与编辑界面
+ */
 public class NewNoteActivity extends AppCompatActivity {
     //SQLiteDatabase db=SQLiteDatabase.openOrCreateDatabase("date/data/com.example.a64929.mynote/databases/Notes.db",null);
     private boolean have_dialog=true;
@@ -31,12 +34,12 @@ public class NewNoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_note);
         app=(Data)getApplication();
         Intent intent=getIntent();
-        hc=intent.getBooleanExtra("have_context",false);
+        hc=intent.getBooleanExtra("have_content",false);
         if(hc){
             int id=intent.getIntExtra("note_id",1);
             view_id=intent.getIntExtra("view_id",0);
             note_id=id;
-            select(id);
+            display(id);
             EditText et = (EditText)findViewById(R.id.editText2);
             et.requestFocus();
             et.setSelection(et.getText().length());
@@ -128,62 +131,36 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private void save(){
         EditText title0 = (EditText) findViewById(R.id.editText);
-        EditText context0 = (EditText) findViewById(R.id.editText2);
+        EditText content0 = (EditText) findViewById(R.id.editText2);
         String title = title0.getText().toString();
-        String context = context0.getText().toString();
+        String content = content0.getText().toString();
 
         Intent intent = new Intent();
         intent.putExtra("title", title);
-        intent.putExtra("context", context);
+        intent.putExtra("content", content);
         if (hc) {
-            update(note_id,title,context);
+            MyDatabaseHelper.update(note_id,title,content);
             intent.putExtra("view_id",view_id);
             intent.putExtra("id",note_id);
         }else {
-            int id = insert(title, noteTime, context);
+
+            Cursor cursor=MyDatabaseHelper.insert(title,noteTime,content);
+            int id=cursor.getInt(cursor.getColumnIndex("id"));
             intent.putExtra("time",noteTime);
             intent.putExtra("id", id);
         }
         setResult(RESULT_OK, intent);
     }
 
-    private int insert(String title,long time,String context){
-        String time0=String.valueOf(time);
-        /**
-         * SQL插入语句:
-         * INSERT INTO Book(name,author,pages,price) VALUES
-         * ("The Da Vinci Code" ,"Dan Brown",454,16.96);
-         */
-        SQLiteDatabase db=app.getDbHelper().getWritableDatabase();
-        db.execSQL("INSERT INTO notes (title,time,context) VALUES(?,?,?)",
-                new String[]{title,time0,context});
-        Cursor cursor=db.query(app.getTable(),new String[]{"id"},"time=?",new String[]{time0},null,null,null);
-        cursor.moveToFirst();
-        int id=cursor.getInt(cursor.getColumnIndex("id"));
-        db.close();
-        return id;
-    }
-
-    private void select(int id){
+    private void display(int id){
         String ID=String.valueOf(id);
-        SQLiteDatabase db=app.getDbHelper().getWritableDatabase();
-        Cursor cursor=db.query(app.getTable(),new String[]{"title","time","context"},"id=?",new String[]{ID},null,null,null);
-        cursor.moveToFirst();
+        Cursor cursor=MyDatabaseHelper.select(ID);
         String title=cursor.getString(cursor.getColumnIndex("title"));
         noteTime=cursor.getLong(cursor.getColumnIndex("time"));
-        String context=cursor.getString(cursor.getColumnIndex("context"));
+        String content=cursor.getString(cursor.getColumnIndex("content"));
         EditText title0=(EditText)findViewById(R.id.editText);
         title0.setText(title);
-        EditText context0=(EditText)findViewById(R.id.editText2);
-        context0.setText(context);
-    }
-
-    private void update(int id,String title,String context){
-        SQLiteDatabase db = app.getDbHelper().getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("title",title);
-        values.put("context",context);
-        //?是一个占位符，通过字符串数组为每个占位符指定相应的内容
-        db.update(app.getTable(), values, "id = ?", new String[]{String.valueOf(id)});
+        EditText content0=(EditText)findViewById(R.id.editText2);
+        content0.setText(content);
     }
 }

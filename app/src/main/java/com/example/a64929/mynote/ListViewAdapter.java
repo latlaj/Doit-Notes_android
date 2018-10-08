@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListViewAdapter extends BaseAdapter {
-    List<Note> list=new ArrayList<Note>();
+    List<Note> list;
     LayoutInflater inflater=null;
 
     public ListViewAdapter(List<Note> list,Context context){
@@ -44,11 +44,11 @@ public class ListViewAdapter extends BaseAdapter {
             visible=view;
         }
         TextView title=(TextView)visible.findViewById(R.id.ItemTitle);
-        TextView context=(TextView)visible.findViewById(R.id.ItemText);
+        TextView content=(TextView)visible.findViewById(R.id.ItemText);
         TextView time=(TextView)visible.findViewById(R.id.ItemTime);
         title.setText(list.get(i).getTitle());
         time.setText(list.get(i).getTime());
-        context.setText(list.get(i).getContext());
+        content.setText(list.get(i).getContent());
         return visible;
     }
 }

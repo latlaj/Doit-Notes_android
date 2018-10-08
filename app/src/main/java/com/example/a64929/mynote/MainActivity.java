@@ -54,12 +54,8 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                //TextView title=view.findViewById(R.id.ItemTitle);
-                //TextView context=view.findViewById(R.id.ItemText);
                 Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
-                //intent.putExtra("title",title.getText());
-                //intent.putExtra("context",context.getText());
-                intent.putExtra("have_context", true);
+                intent.putExtra("have_content", true);
                 intent.putExtra("note_id", list.get(i).getId());
                 intent.putExtra("view_id", i);
                 startActivityForResult(intent, 2);
@@ -76,21 +72,22 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-        SQLiteDatabase db = app.getDbHelper().getWritableDatabase();
-        Cursor c = db.rawQuery("select * from notes", null);
+        Cursor c = MyDatabaseHelper.check();
         if (c.getCount() != 0) {
-            Cursor cursor = db.query(app.getTable(), new String[]{"id", "title", "time", "context"}, null, null, null, null, "id");
+            String[] strings={"id", "title", "time", "content"};
+            String order="id";
+            Cursor cursor = MyDatabaseHelper.check(strings,order);
             SimpleDateFormat sdFormatter = new SimpleDateFormat(getString(R.string.date_format));
             while (cursor.moveToNext()) {
                 String title = cursor.getString(cursor.getColumnIndex("title"));
-                String context = cursor.getString(cursor.getColumnIndex("context"));
+                String content = cursor.getString(cursor.getColumnIndex("content"));
                 String time = sdFormatter.format(cursor.getLong(cursor.getColumnIndex("time")));
                 int id = cursor.getInt(cursor.getColumnIndex("id"));
-                list.add(new Note(id, title, time, context));
+                list.add(new Note(id, title, time, content));
             }
-            db.close();
+            cursor.close();
         }
+        c.close();
     }
 
     @Override
@@ -104,8 +101,6 @@ public class MainActivity extends AppCompatActivity {
         if (list.size() == 0) {
             listView.setVisibility(View.GONE);
             no_list.setVisibility(View.VISIBLE);
-            //SQLiteDatabase db = app.getDbHelper().getWritableDatabase();
-            //db.execSQL("drop table notes");
         } else {
             listView.setVisibility(View.VISIBLE);
             no_list.setVisibility(View.GONE);
@@ -158,9 +153,9 @@ public class MainActivity extends AppCompatActivity {
                         String title = data.getStringExtra("title");
                         SimpleDateFormat sdFormatter = new SimpleDateFormat(getString(R.string.date_format));
                         String time = sdFormatter.format(data.getLongExtra("time", 1998));
-                        String context = data.getStringExtra("context");
+                        String content = data.getStringExtra("content");
                         int id = data.getIntExtra("id", 1);
-                        list.add(new Note(id, title, time, context));
+                        list.add(new Note(id, title, time, content));
                     }
                 }
                 break;
@@ -170,12 +165,12 @@ public class MainActivity extends AppCompatActivity {
                         deleteNote(data.getIntExtra("view_id", 0));
                     } else {
                         String title = data.getStringExtra("title");
-                        String context = data.getStringExtra("context");
+                        String content = data.getStringExtra("content");
                         Note note = list.get(data.getIntExtra("view_id", 0));
                         int id = data.getIntExtra("id", 1);
                         note.setId(id);
                         note.setTitle(title);
-                        note.setContext(context);
+                        note.setContent(content);
                     }
                 }
         }
@@ -183,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void createNewNote(View view) {
         Intent intent = new Intent(this, NewNoteActivity.class);
-        intent.putExtra("have_context", false);
+        intent.putExtra("have_content", false);
         startActivityForResult(intent, 1);
     }
 
@@ -207,8 +202,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void deleteNote(int view_id) {
-        SQLiteDatabase db = app.getDbHelper().getWritableDatabase();
-        db.delete(app.getTable(), "id = ?", new String[]{String.valueOf(list.get(view_id).getId())});
+        String ID=String.valueOf(list.get(view_id).getId());
+        MyDatabaseHelper.delete_id(ID);
         list.remove(view_id);
         lva.notifyDataSetChanged();
         if (list.size() == 0) {

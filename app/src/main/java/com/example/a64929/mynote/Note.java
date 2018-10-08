@@ -3,19 +3,19 @@ package com.example.a64929.mynote;
 public class Note {
     private String title="Title";
     private String time="1998";
-    private String context="Hello World";
+    private String content="Hello World";
     private int id=0;
-    public Note(int id,String title,String context){
+    public Note(int id,String title,String content){
         setId(id);
         setTitle(title);
-        setContext(context);
+        setContent(content);
     }
 
-    public Note(int id,String title,String time,String context){
+    public Note(int id,String title,String time,String content){
         setId(id);
         setTitle(title);
         setTime(time);
-        setContext(context);
+        setContent(content);
     }
 
     public void setId(int id) {
@@ -42,11 +42,11 @@ public class Note {
         return time;
     }
 
-    public void setContext(String context) {
-        this.context = context;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public String getContext() {
-        return context;
+    public String getContent() {
+        return content;
     }
 }
